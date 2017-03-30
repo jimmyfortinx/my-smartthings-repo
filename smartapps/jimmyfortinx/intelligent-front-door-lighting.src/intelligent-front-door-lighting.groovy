@@ -32,4 +32,51 @@ def updated() {
 }
 
 def initialize() {
+    subscribe(location, "position", onLocationChange)
+	subscribe(location, "sunriseTime", onSunrise)
+	subscribe(location, "sunsetTime", onSunset)
+
+    schedule(startTime, "startTimerCallback")
+
+    controlLights()
+}
+
+def onLocationChange(event) {
+    log.trace "onLocationChange"
+
+    controlLights()
+}
+
+def onSunrise(event) {
+    log.trace "onSunrise"
+
+    controlLights()
+}
+
+def onSunset(event) {
+    log.trace "onSunset"
+
+    controlLights()
+}
+
+def onMorning(event) {
+    log.trace "onMorning"
+
+    controlLights()
+}
+
+def onNight(event) {
+    log.trace "onNight"
+
+    controlLights()
+}
+
+def controlLights() {
+    def sunDetails = getSunriseAndSunset(sunriseOffset: sunriseOffset, sunsetOffset: sunsetOffset)
+
+    def now = new Date()
+	def riseTime = sunDetails.sunrise
+	def setTime = sunDetails.sunset
+
+    log.trace "controlLights > now: $now, riseTime: $riseTime, setTime: $setTime"
 }
