@@ -36,7 +36,8 @@ def initialize() {
 	subscribe(location, "sunriseTime", onSunrise)
 	subscribe(location, "sunsetTime", onSunset)
 
-    schedule(startTime, "startTimerCallback")
+    schedule(morningOpenTime, "onMorning")
+    schedule(nightCloseTime, "onNight")
 
     controlLights()
 }
