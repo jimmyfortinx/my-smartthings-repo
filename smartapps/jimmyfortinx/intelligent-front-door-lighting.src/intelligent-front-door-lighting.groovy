@@ -14,11 +14,11 @@ preferences {
     }
 
 	section ("At morning") {
-		input "morningOpenTime", "mode", title: "What time to open ligths?", required: true
+		input "morningOpenTime", "time", title: "What time to open ligths?", required: true
 	}
 
     section ("At night") {
-		input "nightCloseTime", "mode", title: "What time to close ligths?", required: true
+		input "nightCloseTime", "time", title: "What time to close ligths?", required: true
 	}
 }
 
