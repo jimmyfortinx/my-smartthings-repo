@@ -21,3 +21,15 @@ preferences {
 		input "nightCloseTime", "mode", title: "What time to close ligths?", required: true
 	}
 }
+
+def installed() {
+	initialize()
+}
+
+def updated() {
+	unsubscribe()
+	initialize()
+}
+
+def initialize() {
+}
