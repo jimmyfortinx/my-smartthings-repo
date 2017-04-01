@@ -33,8 +33,8 @@ def updated() {
 
 def initialize() {
     subscribe(location, "position", onLocationChange)
-	subscribe(location, "sunriseTime", onSunrise)
-	subscribe(location, "sunsetTime", onSunset)
+	subscribe(location, "sunrise", onSunrise)
+	subscribe(location, "sunset", onSunset)
 
     schedule(morningOpenTime, "onMorning")
     schedule(nightCloseTime, "onNight")
@@ -72,6 +72,24 @@ def onNight(event) {
     controlLights()
 }
 
+def turnOnLigthsIfNeeded(message) {
+    def isLigthsOpened = switchs.currentState("on")
+
+    if (!isLigthsOpened) {
+        // switches.on();
+        sendNotificationEvent(message)
+    }
+}
+
+def turnOffLigthsIfNeeded(message) {
+    def isLigthsOpened = switchs.currentState("on")
+
+    if (isLigthsOpened) {
+        // switches.off();
+        sendNotificationEvent(message)
+    }
+}
+
 def controlLights() {
     def sunDetails = getSunriseAndSunset(sunriseOffset: sunriseOffset, sunsetOffset: sunsetOffset)
 
@@ -79,5 +97,15 @@ def controlLights() {
 	def riseTime = sunDetails.sunrise
 	def setTime = sunDetails.sunset
 
-    log.trace "controlLights > now: $now, riseTime: $riseTime, setTime: $setTime"
+    if (now < riseTime) {
+        if (now >= morningOpenTime) {
+            turnOnLigthsIfNeeded("As you requested, I opened front door ligths at morning.")
+        }
+    } else if (now < setTime) {
+        turnOffLigthsIfNeeded("As you requested, I closed front door ligths at sunrise.")
+    } else if (now < nightCloseTime) {
+        turnOnLigthsIfNeeded("As you requested, I opened front door ligths at sunset.")
+    } else {
+        turnOffLigthsIfNeeded("As you requested, I closed front door ligths at night.")
+    }
 }
