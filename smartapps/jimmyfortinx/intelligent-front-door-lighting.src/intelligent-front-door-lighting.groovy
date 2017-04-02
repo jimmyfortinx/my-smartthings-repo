@@ -10,7 +10,7 @@ definition(
 
 preferences {
     section ("Control these lights") {
-        input "switches", "capability.switch", multiple: true
+        input "lights", "capability.switch", multiple: true, required: true
     }
 
 	section ("At morning") {
@@ -20,6 +20,11 @@ preferences {
     section ("At night") {
 		input "nightCloseTime", "time", title: "What time to close ligths?", required: true
 	}
+
+    section ("Consider night when all devices are turned off") {
+        input "devices", "capability.switch", multiple: true
+        input "devicesCloseTime", "time", title: "What time to close ligths?"
+    }
 }
 
 def installed() {
@@ -38,6 +43,10 @@ def initialize() {
 
     schedule(morningOpenTime, "onMorning")
     schedule(nightCloseTime, "onNight")
+
+    if (devices) {
+        subscribe(devices, "switch.off", switchOnHandler)
+    }
 
     controlLights()
 }
@@ -72,26 +81,41 @@ def onNight(event) {
     controlLights()
 }
 
-def filterSwitches(isOn) {
-	def filter = isOn ? { value -> value == "on" } : { value -> value != "on" }
+def onDeviceTurnOff(event) {
+    log.trace "onDeviceTurnOff"
 
-	return switches.currentSwitch.findAll(filter)
+    def openedDevices = filterSwitches(devices, true)
+
+    if (openedDevices.size() == 0) {
+        def nowTime = now()
+        def closeTime = devicesCloseTime ? devicesCloseTime : nightCloseTime
+
+        if (nowTime >= closeTime) {
+            turnOffLightsIfNeeded("As you requested, I closed front door ligths when all devices are closed.")
+        }
+    }
 }
 
-def turnOnLigthsIfNeeded(message) {
-	def closedLights = filterSwitches(false)
+def filterSwitches(switchs, isOn) {
+	def filter = isOn ? { value -> value == "on" } : { value -> value != "on" }
+
+	return switchs.currentSwitch.findAll(filter)
+}
+
+def turnOnLightsIfNeeded(message) {
+	def closedLights = filterSwitches(lights, false)
 
     if (closedLights.size() > 0) {
-        switches.on();
+        lights.on();
         sendNotificationEvent(message)
     }
 }
 
-def turnOffLigthsIfNeeded(message) {
-    def openedLights = filterSwitches(true)
+def turnOffLightsIfNeeded(message) {
+    def openedLights = filterSwitches(lights, true)
 
     if (openedLights.size() > 0) {
-        switches.off();
+        lights.off();
         sendNotificationEvent(message)
     }
 }
@@ -105,13 +129,13 @@ def controlLights() {
     
     if (nowTime < riseTime.time) {
         if (nowTime >= timeToday(morningOpenTime).time) {
-            turnOnLigthsIfNeeded("As you requested, I opened front door ligths at morning.")
+            turnOnLightsIfNeeded("As you requested, I opened front door ligths at morning.")
         }
     } else if (nowTime < setTime.time) {
-        turnOffLigthsIfNeeded("As you requested, I closed front door ligths at sunrise.")
+        turnOffLightsIfNeeded("As you requested, I closed front door ligths at sunrise.")
     } else if (nowTime < timeToday(nightCloseTime).time) {
-        turnOnLigthsIfNeeded("As you requested, I opened front door ligths at sunset.")
+        turnOnLightsIfNeeded("As you requested, I opened front door ligths at sunset.")
     } else {
-        turnOffLigthsIfNeeded("As you requested, I closed front door ligths at night.")
+        turnOffLightsIfNeeded("As you requested, I closed front door ligths at night.")
     }
 }
