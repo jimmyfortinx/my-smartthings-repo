@@ -72,19 +72,25 @@ def onNight(event) {
     controlLights()
 }
 
-def turnOnLigthsIfNeeded(message) {
-    def isLigthsOpened = switchs.currentState("on")
+def filterSwitches(isOn) {
+	def filter = isOn ? { value -> value == "on" } : { value -> value != "on" }
 
-    if (!isLigthsOpened) {
+	return switches.currentSwitch.findAll(filter)
+}
+
+def turnOnLigthsIfNeeded(message) {
+	def closedLights = filterSwitches(false)
+
+    if (closedLights.size() > 0) {
         // switches.on();
         sendNotificationEvent(message)
     }
 }
 
 def turnOffLigthsIfNeeded(message) {
-    def isLigthsOpened = switchs.currentState("on")
+    def openedLights = filterSwitches(true)
 
-    if (isLigthsOpened) {
+    if (openedLights.size() > 0) {
         // switches.off();
         sendNotificationEvent(message)
     }
@@ -93,17 +99,17 @@ def turnOffLigthsIfNeeded(message) {
 def controlLights() {
     def sunDetails = getSunriseAndSunset(sunriseOffset: sunriseOffset, sunsetOffset: sunsetOffset)
 
-    def now = new Date()
+    def nowTime = now()
 	def riseTime = sunDetails.sunrise
 	def setTime = sunDetails.sunset
-
-    if (now < riseTime) {
-        if (now >= morningOpenTime) {
+    
+    if (nowTime < riseTime.time) {
+        if (nowTime >= timeToday(morningOpenTime).time) {
             turnOnLigthsIfNeeded("As you requested, I opened front door ligths at morning.")
         }
-    } else if (now < setTime) {
+    } else if (nowTime < setTime.time) {
         turnOffLigthsIfNeeded("As you requested, I closed front door ligths at sunrise.")
-    } else if (now < nightCloseTime) {
+    } else if (nowTime < timeToday(nightCloseTime).time) {
         turnOnLigthsIfNeeded("As you requested, I opened front door ligths at sunset.")
     } else {
         turnOffLigthsIfNeeded("As you requested, I closed front door ligths at night.")
