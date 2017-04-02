@@ -82,7 +82,7 @@ def turnOnLigthsIfNeeded(message) {
 	def closedLights = filterSwitches(false)
 
     if (closedLights.size() > 0) {
-        // switches.on();
+        switches.on();
         sendNotificationEvent(message)
     }
 }
@@ -91,7 +91,7 @@ def turnOffLigthsIfNeeded(message) {
     def openedLights = filterSwitches(true)
 
     if (openedLights.size() > 0) {
-        // switches.off();
+        switches.off();
         sendNotificationEvent(message)
     }
 }
