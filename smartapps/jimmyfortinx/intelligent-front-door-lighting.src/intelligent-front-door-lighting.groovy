@@ -90,7 +90,7 @@ def onDeviceTurnOff(event) {
         def nowTime = now()
         def closeTime = devicesCloseTime ? devicesCloseTime : nightCloseTime
 
-        if (nowTime >= closeTime) {
+        if (nowTime >= timeToday(closeTime).time) {
             turnOffLightsIfNeeded("As you requested, I closed front door ligths when all devices are closed.")
         }
     }
