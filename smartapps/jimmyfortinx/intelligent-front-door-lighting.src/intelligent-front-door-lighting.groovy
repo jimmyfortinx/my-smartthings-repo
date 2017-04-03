@@ -121,7 +121,7 @@ def turnOffLightsIfNeeded(message) {
 }
 
 def controlLights() {
-    def sunDetails = getSunriseAndSunset(sunriseOffset: sunriseOffset, sunsetOffset: sunsetOffset)
+    def sunDetails = getSunriseAndSunset()
 
     def nowTime = now()
 	def riseTime = sunDetails.sunrise
