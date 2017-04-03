@@ -45,7 +45,7 @@ def initialize() {
     schedule(nightCloseTime, "onNight")
 
     if (devices) {
-        subscribe(devices, "switch.off", switchOnHandler)
+        subscribe(devices, "switch.off", onDeviceTurnOff)
     }
 
     controlLights()
