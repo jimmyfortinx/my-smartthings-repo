@@ -39,9 +39,41 @@ def initialize() {
 
 def meterHandler(evt) {
     def meterValue = evt.value as double
-    def thresholdValue = threshold as int
-    if (meterValue > thresholdValue) {
-	    log.debug "${meter} reported energy consumption above ${threshold}. Turning of switches."
-    	switches.off()
+    if (meterValue > runningThreshold as int) {
+        dishwasherRunning()
+    } else if (meterValue > openThreshold as int) {
+        dishwasherOpened()
+    } else {
+        dishwasherClosed()
     }
+}
+
+def dishwasherRunning() {
+    if (state.previousState == "running") 
+        return;
+
+    state.previousState = "running"
+
+    log.debug "Dishwasher is running."
+    switches.setLevel(runningLevel)
+}
+
+def dishwasherOpened() {
+    if (state.previousState == "opened") 
+        return;
+
+    state.previousState = "opened"
+
+    log.debug "Dishwasher is opened."
+    switches.setLevel(openLevel)
+}
+
+def dishwasherClosed() {
+    if (state.previousState == "closed") 
+        return;
+
+    state.previousState = "closed"
+
+    log.debug "Dishwasher is closed."
+    switches.off()
 }
