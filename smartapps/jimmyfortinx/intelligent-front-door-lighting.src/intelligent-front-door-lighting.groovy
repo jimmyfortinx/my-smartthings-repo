@@ -38,8 +38,6 @@ def updated() {
 
 def initialize() {
     subscribe(location, "position", onLocationChange)
-	subscribe(location, "sunrise", onSunrise)
-	subscribe(location, "sunset", onSunset)
 
     schedule(morningOpenTime, "onMorning")
     schedule(nightCloseTime, "onNight")
@@ -48,37 +46,40 @@ def initialize() {
         subscribe(devices, "switch.off", onDeviceTurnOff)
     }
 
+	registerSunEvents()
     controlLights()
 }
 
 def onLocationChange(event) {
     log.trace "onLocationChange"
 
-    controlLights()
+    controlLights(event)
 }
 
 def onSunrise(event) {
     log.trace "onSunrise"
 
-    controlLights()
+	registerSunEvents()
+    controlLights(event)
 }
 
 def onSunset(event) {
     log.trace "onSunset"
 
-    controlLights()
+	registerSunEvents()
+    controlLights(event)
 }
 
 def onMorning(event) {
     log.trace "onMorning"
 
-    controlLights()
+    controlLights(event)
 }
 
 def onNight(event) {
     log.trace "onNight"
 
-    controlLights()
+    controlLights(event)
 }
 
 def onDeviceTurnOff(event) {
@@ -120,8 +121,48 @@ def turnOffLightsIfNeeded(message) {
     }
 }
 
-def controlLights() {
+def registerSunEvents () {
+	def sunDetails = getSunriseAndSunset()
+
+	def now = new Date()
+	def riseTime = sunDetails.sunrise
+	def setTime = sunDetails.sunset
+
+	if (state.riseTime != riseTime.time) {
+		unschedule("onSunrise")
+
+		if(riseTime.before(now)) {
+			riseTime = riseTime.next()
+		}
+
+		state.riseTime = riseTime.time
+
+		log.info "scheduling sunrise handler for $riseTime"
+		schedule(riseTime, onSunrise)
+	}
+    
+    if (state.setTime != setTime.time) {
+		unschedule("onSunset")
+
+	    if(setTime.before(now)) {
+		    setTime = setTime.next()
+	    }
+
+		state.setTime = setTime.time
+
+		log.info "scheduling sunset handler for $setTime"
+	    schedule(setTime, onSunset)
+	}
+}
+
+def controlLights(event) {
     def sunDetails = getSunriseAndSunset()
+
+	def eventName = null
+    
+    if (event) {
+    	eventName = event.name
+    }
 
     def nowTime = now()
 	def riseTime = sunDetails.sunrise
